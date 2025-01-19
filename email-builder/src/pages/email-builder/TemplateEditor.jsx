@@ -10,6 +10,7 @@ const TemplateEditor = () => {
   const template = location.state?.template;
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [error, setError] = useState("");
 
   const [sections, setSections] = useState({
@@ -120,6 +121,7 @@ const TemplateEditor = () => {
   const handleImageUpload = async (file) => {
     const formData = new FormData();
     formData.append("image", file);
+    setIsUploadingImage(true);
 
     try {
       const response = await fetch(`${API_URL}/uploadImage`, {
@@ -137,6 +139,8 @@ const TemplateEditor = () => {
     } catch (error) {
       console.error("Error uploading image:", error);
       setError("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -274,26 +278,60 @@ const TemplateEditor = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    setImageFile(file);
-                    if (file) handleImageUpload(file);
-                  }}
-                  className="w-full mb-2"
-                />
-                {imageUrl && (
-                  <div className="space-y-2">
-                    <img
-                      src={imageUrl}
-                      alt="Uploaded preview"
-                      className="max-h-32 rounded"
-                      style={imageStyles}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-4 text-center ${
+                    isUploadingImage ? "opacity-50" : "hover:border-blue-500"
+                  }`}
+                >
+                  {isUploadingImage ? (
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <svg
+                        className="animate-spin h-8 w-8 text-blue-500"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span className="mt-2 text-sm text-gray-600">
+                        Uploading image...
+                      </span>
+                    </div>
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        setImageFile(file);
+                        if (file) handleImageUpload(file);
+                      }}
+                      className="w-full mb-2 cursor-pointer"
+                      disabled={isUploadingImage}
                     />
-                  </div>
-                )}
+                  )}
+                  {imageUrl && (
+                    <div className="space-y-2">
+                      <img
+                        src={imageUrl}
+                        alt="Uploaded preview"
+                        className="max-h-32 rounded mx-auto"
+                        style={imageStyles}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
