@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:5000";
+// const API_URL = "http://localhost:5000";
+const API_URL = "https://rapid-quest-backend.vercel.app";
 
 const NonTechnicalMode = () => {
   const navigate = useNavigate();

@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import generateEmailTemplate from "../../utils/emailTemplate";
 
-const API_URL = "http://localhost:5000";
-
+// const API_URL = "http://localhost:5000";
+const API_URL = "https://rapid-quest-backend.vercel.app";
 const TemplateEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();

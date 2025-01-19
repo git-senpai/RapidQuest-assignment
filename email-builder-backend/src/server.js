@@ -10,6 +10,15 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-requested-with"],
+  })
+);
+
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -37,8 +46,22 @@ const upload = multer({
 });
 
 // Middleware
-app.use(cors());
 app.use(express.json());
+
+// Add headers before the routes are defined
+app.use(function (req, res, next) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  next();
+});
 
 // MongoDB connection
 mongoose

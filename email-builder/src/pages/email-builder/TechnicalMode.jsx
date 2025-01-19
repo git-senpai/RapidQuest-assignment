@@ -5,8 +5,8 @@ import "react-quill/dist/quill.snow.css";
 import StyleControls from "../../components/shared/StyleControls";
 import generateEmailTemplate from "../../utils/emailTemplate";
 
-const API_URL = "http://localhost:5000";
-
+// const API_URL = "http://localhost:5000";
+const API_URL = "https://rapid-quest-backend.vercel.app";
 // Quill editor formats
 const formats = [
   "header",
