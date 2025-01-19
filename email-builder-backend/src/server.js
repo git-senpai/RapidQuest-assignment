@@ -11,11 +11,27 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration
+const allowedOrigins = [
+  "https://rapid-quest-frontend-jade.vercel.app",
+  "http://localhost:5173", // Development
+  "http://localhost:3000", // Alternative development port
+];
+
 app.use(
   cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-requested-with"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
 );
 
@@ -196,7 +212,7 @@ app.delete("/templates/:id", async (req, res) => {
   }
 });
 
-// Catch-all route to serve index.html
+// Handle client-side routing - must be after API routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
