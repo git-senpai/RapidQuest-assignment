@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "build": "npm install --production && echo 'Build completed successfully! Use npm start to run the production server.'"
   },
   "keywords": [],
   "author": "",
