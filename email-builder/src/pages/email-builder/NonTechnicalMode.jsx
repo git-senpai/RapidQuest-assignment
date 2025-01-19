@@ -10,12 +10,14 @@ const NonTechnicalMode = () => {
   const [deletingTemplates, setDeletingTemplates] = useState(new Set());
   const [error, setError] = useState("");
   const [hoveredTemplate, setHoveredTemplate] = useState(null);
+  const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
     fetchTemplates();
   }, []);
 
   const fetchTemplates = async () => {
+    setIsFetching(true);
     try {
       const response = await fetch(`${API_URL}/templates`);
       if (!response.ok) throw new Error("Failed to fetch templates");
@@ -25,6 +27,8 @@ const NonTechnicalMode = () => {
     } catch (error) {
       console.error("Error fetching templates:", error);
       setError("Failed to load templates. Please try refreshing the page.");
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -160,102 +164,117 @@ const NonTechnicalMode = () => {
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6">
-            <div className="flex items-center">
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {error}
+        {isFetching ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <div className="relative w-24 h-24">
+              <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-b-blue-500 border-l-transparent border-r-transparent animate-spin"></div>
+              <div className="absolute inset-3 rounded-full border-4 border-t-indigo-500 border-b-indigo-500 border-l-transparent border-r-transparent animate-pulse"></div>
+              <div className="absolute inset-[18px] bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full animate-pulse"></div>
             </div>
+            <p className="mt-4 text-lg text-gray-600 font-medium">
+              Loading templates...
+            </p>
+            <p className="text-sm text-gray-500">
+              Please wait while we fetch your templates
+            </p>
           </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {templates.map((template) => (
-            <div
-              key={template._id}
-              className={`group relative bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                hoveredTemplate === template._id ? "ring-2 ring-blue-500" : ""
-              }`}
-              onClick={() => handleTemplateSelect(template)}
-              onMouseEnter={() => setHoveredTemplate(template._id)}
-              onMouseLeave={() => setHoveredTemplate(null)}
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-4">{error}</div>
+            <button
+              onClick={fetchTemplates}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
             >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-semibold text-lg text-gray-800 truncate flex-1">
-                    {template.title}
-                  </h3>
-                  <button
-                    onClick={(e) => handleDeleteTemplate(e, template._id)}
-                    className={`ml-2 p-2 rounded-full transition-all duration-200 ${
-                      deletingTemplates.has(template._id)
-                        ? "bg-gray-100 cursor-not-allowed"
-                        : "hover:bg-red-50 text-red-500 hover:text-red-600"
-                    }`}
-                    disabled={deletingTemplates.has(template._id)}
-                  >
-                    {deletingTemplates.has(template._id) ? (
-                      <svg
-                        className="animate-spin h-5 w-5 text-gray-500"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
+              Try Again
+            </button>
+          </div>
+        ) : templates.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">No templates found</p>
+            <button
+              onClick={() => navigate("/")}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            >
+              Create Your First Template
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {templates.map((template) => (
+              <div
+                key={template._id}
+                className={`group relative bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                  hoveredTemplate === template._id ? "ring-2 ring-blue-500" : ""
+                }`}
+                onClick={() => handleTemplateSelect(template)}
+                onMouseEnter={() => setHoveredTemplate(template._id)}
+                onMouseLeave={() => setHoveredTemplate(null)}
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-semibold text-lg text-gray-800 truncate flex-1">
+                      {template.title}
+                    </h3>
+                    <button
+                      onClick={(e) => handleDeleteTemplate(e, template._id)}
+                      className={`ml-2 p-2 rounded-full transition-all duration-200 ${
+                        deletingTemplates.has(template._id)
+                          ? "bg-gray-100 cursor-not-allowed"
+                          : "hover:bg-red-50 text-red-500 hover:text-red-600"
+                      }`}
+                      disabled={deletingTemplates.has(template._id)}
+                    >
+                      {deletingTemplates.has(template._id) ? (
+                        <svg
+                          className="animate-spin h-5 w-5 text-gray-500"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="h-5 w-5"
                           fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    )}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <div className="relative overflow-hidden rounded-lg">
+                    {renderTemplatePreview(template)}
+                  </div>
+                </div>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white via-white to-transparent h-16 pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 p-4">
+                  <button className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg transform transition-all duration-300 hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Use Template
                   </button>
                 </div>
-                <div className="relative overflow-hidden rounded-lg">
-                  {renderTemplatePreview(template)}
-                </div>
               </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white via-white to-transparent h-16 pointer-events-none" />
-              <div className="absolute inset-x-0 bottom-0 p-4">
-                <button className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg transform transition-all duration-300 hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                  Use Template
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
