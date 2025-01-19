@@ -10,6 +10,9 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, "../public")));
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -168,6 +171,11 @@ app.delete("/templates/:id", async (req, res) => {
     console.error("Error deleting template:", error);
     res.status(500).json({ error: "Failed to delete template" });
   }
+});
+
+// Catch-all route to serve index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 // Error handling middleware
