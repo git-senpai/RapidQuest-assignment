@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import StyleControls from "../../components/shared/StyleControls";
+import generateEmailTemplate from "../../utils/emailTemplate";
 
 const API_URL = "http://localhost:5000";
 
@@ -225,51 +226,14 @@ const TechnicalMode = () => {
   };
 
   const handleDownload = () => {
-    const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <style>
-      /* Your existing styles */
-    </style>
-</head>
-<body>
-    <div class="container">
-      <div class="preview-container">
-        <div class="header">
-          ${sections.header}
-        </div>
-        ${
-          imageUrl
-            ? `
-        <div class="image-container">
-          <img 
-            src="${API_URL}${imageUrl}" 
-            alt="Email Image" 
-            style="width: ${imageStyles.width}; max-height: ${
-                imageStyles.maxHeight
-              }; ${
-                imageStyles.alignment === "center"
-                  ? "display: block; margin: 0 auto;"
-                  : ""
-              }"
-          />
-        </div>
-        `
-            : ""
-        }
-        <div class="content">
-          ${sections.content}
-        </div>
-        <div class="footer">
-          ${sections.footer}
-        </div>
-      </div>
-    </div>
-</body>
-</html>`;
+    const htmlContent = generateEmailTemplate({
+      title: title || "Email Template",
+      sections,
+      styles,
+      imageUrl,
+      imageStyles,
+      API_URL,
+    });
 
     const blob = new Blob([htmlContent], { type: "text/html" });
     const url = window.URL.createObjectURL(blob);
