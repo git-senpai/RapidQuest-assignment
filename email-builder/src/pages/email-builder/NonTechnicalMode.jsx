@@ -106,7 +106,7 @@ const NonTechnicalMode = () => {
         {templateData.imageUrl && (
           <div className="mt-1 relative h-32 overflow-hidden rounded-lg">
             <img
-              src={`${API_URL}${templateData.imageUrl}`}
+              src={templateData.imageUrl}
               alt="Template preview"
               className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
             />

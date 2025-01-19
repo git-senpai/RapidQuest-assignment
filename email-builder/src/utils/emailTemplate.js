@@ -269,7 +269,7 @@ const generateEmailTemplate = ({
             ? `
         <div class="image-container">
           <img 
-            src="${API_URL}${imageUrl}" 
+            src="${imageUrl}" 
             alt="Email Image"
             style="${getImageStyles()}"
           />

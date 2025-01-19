@@ -51,6 +51,7 @@ const TemplateEditor = () => {
       fontFamily: "Arial",
     },
   });
+  const [cloudinaryPublicId, setCloudinaryPublicId] = useState("");
 
   // Helper function to strip HTML tags
   const stripHtml = (html) => {
@@ -93,6 +94,9 @@ const TemplateEditor = () => {
           template.imageUrl ||
           ""
       );
+      setCloudinaryPublicId(
+        parsedContent.cloudinaryPublicId || template.cloudinaryPublicId || ""
+      );
     } catch (e) {
       console.error("Error parsing template:", e);
       // Fallback for old templates
@@ -102,6 +106,7 @@ const TemplateEditor = () => {
         footer: "",
       });
       setImageUrl(template.imageUrl || "");
+      setCloudinaryPublicId(template.cloudinaryPublicId || "");
     }
   }, [template, navigate]);
 
@@ -128,8 +133,10 @@ const TemplateEditor = () => {
 
       const data = await response.json();
       setImageUrl(data.imageUrl);
+      setCloudinaryPublicId(data.publicId);
     } catch (error) {
       console.error("Error uploading image:", error);
+      setError("Failed to upload image. Please try again.");
     }
   };
 
@@ -137,7 +144,54 @@ const TemplateEditor = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // ... existing submission code ...
+      const response = await fetch(`${API_URL}/uploadEmailConfig`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: template.title,
+          content: JSON.stringify({
+            sections,
+            styles,
+            imageUrl,
+            cloudinaryPublicId,
+            layout: {
+              header: {
+                content: sections.header,
+                styles: styles.header,
+              },
+              content: {
+                content: sections.content,
+                styles: styles.content,
+              },
+              footer: {
+                content: sections.footer,
+                styles: styles.footer,
+              },
+              image: {
+                ...imageStyles,
+                url: imageUrl,
+              },
+            },
+          }),
+          imageUrl,
+          cloudinaryPublicId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save template");
+      }
+
+      setError("");
+      // Show success message
+      const successMessage = document.createElement("div");
+      successMessage.className =
+        "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-out";
+      successMessage.textContent = "Template saved successfully!";
+      document.body.appendChild(successMessage);
+      setTimeout(() => document.body.removeChild(successMessage), 3000);
     } catch (error) {
       console.error("Error saving template:", error);
       setError("Failed to save template. Please try again.");
@@ -233,7 +287,7 @@ const TemplateEditor = () => {
                 {imageUrl && (
                   <div className="space-y-2">
                     <img
-                      src={`${API_URL}${imageUrl}`}
+                      src={imageUrl}
                       alt="Uploaded preview"
                       className="max-h-32 rounded"
                       style={imageStyles}
@@ -385,7 +439,7 @@ const TemplateEditor = () => {
               {imageUrl && (
                 <div className={`mb-4 text-${imageStyles.alignment}`}>
                   <img
-                    src={`${API_URL}${imageUrl}`}
+                    src={imageUrl}
                     alt="Preview"
                     style={{
                       width: imageStyles.width,

@@ -126,6 +126,7 @@ const TechnicalMode = () => {
       fontFamily: "Arial",
     },
   });
+  const [cloudinaryPublicId, setCloudinaryPublicId] = useState("");
 
   const handleSectionChange = (section, value) => {
     setSections((prev) => ({
@@ -157,6 +158,7 @@ const TechnicalMode = () => {
 
       const data = await response.json();
       setImageUrl(data.imageUrl);
+      setCloudinaryPublicId(data.publicId);
     } catch (error) {
       console.error("Error uploading image:", error);
       setError("Failed to upload image. Please try again.");
@@ -207,6 +209,7 @@ const TechnicalMode = () => {
             imageStyles,
             styles,
             imageUrl,
+            cloudinaryPublicId,
             layout: {
               header: {
                 content: sections.header,
@@ -227,6 +230,7 @@ const TechnicalMode = () => {
             },
           }),
           imageUrl,
+          cloudinaryPublicId,
         }),
       });
 
@@ -708,7 +712,7 @@ const TechnicalMode = () => {
                   {imageUrl && (
                     <div className={`mb-4 text-${imageStyles.alignment}`}>
                       <img
-                        src={`${API_URL}${imageUrl}`}
+                        src={imageUrl}
                         alt="Preview"
                         style={{
                           width: imageStyles.width,

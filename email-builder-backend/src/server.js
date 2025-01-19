@@ -4,21 +4,38 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create uploads directory if it doesn't exist
-const uploadDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      return cb(new Error("Only image files are allowed!"), false);
+    }
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // MongoDB connection
 mongoose
@@ -36,41 +53,12 @@ mongoose
     console.error("MongoDB connection error:", err);
   });
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Get file extension
-    const ext = path.extname(file.originalname);
-    // Create unique filename
-    cb(null, `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`);
-  },
-});
-
-// File filter
-const fileFilter = (req, file, cb) => {
-  // Accept images only
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-    return cb(new Error("Only image files are allowed!"), false);
-  }
-  cb(null, true);
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-});
-
 // MongoDB Schema
 const EmailTemplateSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   imageUrl: String,
+  cloudinaryPublicId: String,
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -103,13 +91,26 @@ app.get("/getEmailLayout", (req, res) => {
   res.send(defaultLayout);
 });
 
-app.post("/uploadImage", upload.single("image"), (req, res) => {
+app.post("/uploadImage", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image file uploaded" });
     }
-    const imageUrl = `/uploads/${req.file.filename}`;
-    res.json({ imageUrl });
+
+    // Convert buffer to base64
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "email-builder",
+      resource_type: "auto",
+    });
+
+    res.json({
+      imageUrl: result.secure_url,
+      publicId: result.public_id,
+    });
   } catch (error) {
     console.error("Error uploading image:", error);
     res.status(500).json({ error: error.message || "Failed to upload image" });
@@ -118,11 +119,12 @@ app.post("/uploadImage", upload.single("image"), (req, res) => {
 
 app.post("/uploadEmailConfig", async (req, res) => {
   try {
-    const { title, content, imageUrl } = req.body;
+    const { title, content, imageUrl, cloudinaryPublicId } = req.body;
     const newTemplate = new EmailTemplate({
       title,
       content,
       imageUrl,
+      cloudinaryPublicId,
     });
     await newTemplate.save();
     res.status(201).json(newTemplate);
@@ -150,11 +152,12 @@ app.delete("/templates/:id", async (req, res) => {
       return res.status(404).json({ error: "Template not found" });
     }
 
-    // Delete associated image if exists
-    if (template.imageUrl) {
-      const imagePath = path.join(__dirname, "..", template.imageUrl);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+    // Delete image from Cloudinary if exists
+    if (template.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(template.cloudinaryPublicId);
+      } catch (cloudinaryError) {
+        console.error("Error deleting image from Cloudinary:", cloudinaryError);
       }
     }
 
@@ -176,5 +179,4 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Upload directory: ${uploadDir}`);
 });
