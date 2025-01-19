@@ -8,6 +8,7 @@ const NonTechnicalMode = () => {
   const [templates, setTemplates] = useState([]);
   const [deletingTemplates, setDeletingTemplates] = useState(new Set());
   const [error, setError] = useState("");
+  const [hoveredTemplate, setHoveredTemplate] = useState(null);
 
   useEffect(() => {
     fetchTemplates();
@@ -31,7 +32,7 @@ const NonTechnicalMode = () => {
   };
 
   const handleDeleteTemplate = async (e, templateId) => {
-    e.stopPropagation(); // Prevent template selection when clicking delete
+    e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this template?")) {
       return;
     }
@@ -46,10 +47,18 @@ const NonTechnicalMode = () => {
         throw new Error("Failed to delete template");
       }
 
-      // Remove template from state
       setTemplates((prevTemplates) =>
         prevTemplates.filter((template) => template._id !== templateId)
       );
+
+      // Show success message
+      const successMessage = document.createElement("div");
+      successMessage.className =
+        "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-out";
+      successMessage.textContent = "Template deleted successfully!";
+      document.body.appendChild(successMessage);
+      setTimeout(() => document.body.removeChild(successMessage), 3000);
+
       setError("");
     } catch (error) {
       console.error("Error deleting template:", error);
@@ -81,14 +90,11 @@ const NonTechnicalMode = () => {
     }
 
     return (
-      <div
-        className="text-sm text-gray-600 mt-2 overflow-hidden"
-        style={{ maxHeight: "150px" }}
-      >
+      <div className="text-sm text-gray-600 overflow-hidden">
         {templateData.styles.header && (
           <div
             style={{ ...templateData.styles.header, fontSize: "12px" }}
-            className="mb-1"
+            className="mb-1 line-clamp-1"
           >
             <div
               dangerouslySetInnerHTML={{
@@ -98,21 +104,19 @@ const NonTechnicalMode = () => {
           </div>
         )}
         {templateData.imageUrl && (
-          <div className="mt-1">
+          <div className="mt-1 relative h-32 overflow-hidden rounded-lg">
             <img
               src={`${API_URL}${templateData.imageUrl}`}
               alt="Template preview"
-              className="rounded"
-              style={{
-                width: "100%",
-                maxHeight: "60px",
-                objectFit: "cover",
-              }}
+              className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
             />
           </div>
         )}
         {templateData.styles.content && (
-          <div style={{ ...templateData.styles.content, fontSize: "11px" }}>
+          <div
+            style={{ ...templateData.styles.content, fontSize: "11px" }}
+            className="mt-2 line-clamp-3"
+          >
             <div
               dangerouslySetInnerHTML={{
                 __html: templateData.layout.content?.content || "",
@@ -125,46 +129,85 @@ const NonTechnicalMode = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Choose a Template</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Email Templates
+            </h1>
+            <p className="text-gray-600 mt-2">Choose a template to customize</p>
+          </div>
           <button
             onClick={() => navigate("/")}
-            className="text-gray-600 hover:text-gray-800"
+            className="flex items-center px-4 py-2 bg-white text-gray-700 rounded-lg shadow hover:shadow-md transition-all duration-200"
           >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M11 17l-5-5m0 0l5-5m-5 5h12"
+              />
+            </svg>
             Change Mode
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
-            {error}
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6">
+            <div className="flex items-center">
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              {error}
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {templates.map((template) => (
             <div
               key={template._id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
+              className={`group relative bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                hoveredTemplate === template._id ? "ring-2 ring-blue-500" : ""
+              }`}
               onClick={() => handleTemplateSelect(template)}
+              onMouseEnter={() => setHoveredTemplate(template._id)}
+              onMouseLeave={() => setHoveredTemplate(null)}
             >
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium text-lg truncate flex-1">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="font-semibold text-lg text-gray-800 truncate flex-1">
                     {template.title}
                   </h3>
                   <button
                     onClick={(e) => handleDeleteTemplate(e, template._id)}
-                    className="ml-2 text-red-500 hover:text-red-700 disabled:opacity-50 transition-opacity"
+                    className={`ml-2 p-2 rounded-full transition-all duration-200 ${
+                      deletingTemplates.has(template._id)
+                        ? "bg-gray-100 cursor-not-allowed"
+                        : "hover:bg-red-50 text-red-500 hover:text-red-600"
+                    }`}
                     disabled={deletingTemplates.has(template._id)}
                   >
                     {deletingTemplates.has(template._id) ? (
                       <svg
-                        className="animate-spin h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
+                        className="animate-spin h-5 w-5 text-gray-500"
                         viewBox="0 0 24 24"
                       >
                         <circle
@@ -174,33 +217,38 @@ const NonTechnicalMode = () => {
                           r="10"
                           stroke="currentColor"
                           strokeWidth="4"
-                        ></circle>
+                          fill="none"
+                        />
                         <path
                           className="opacity-75"
                           fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
+                        />
                       </svg>
                     ) : (
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
                         <path
-                          fillRule="evenodd"
-                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                          clipRule="evenodd"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
                     )}
                   </button>
                 </div>
-                {renderTemplatePreview(template)}
+                <div className="relative overflow-hidden rounded-lg">
+                  {renderTemplatePreview(template)}
+                </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 border-t">
-                <button className="w-full bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white via-white to-transparent h-16 pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <button className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg transform transition-all duration-300 hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                   Use Template
                 </button>
               </div>

@@ -49,6 +49,12 @@ const TemplateEditor = () => {
     },
   });
 
+  // Helper function to strip HTML tags
+  const stripHtml = (html) => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || "";
+  };
+
   useEffect(() => {
     if (!template) {
       navigate("/non-tech");
@@ -58,14 +64,15 @@ const TemplateEditor = () => {
     try {
       const parsedContent = JSON.parse(template.content);
 
-      // Set sections content
+      // Set sections content with stripped HTML
       setSections({
-        header: parsedContent.layout?.header?.content || "",
-        content:
+        header: stripHtml(parsedContent.layout?.header?.content || ""),
+        content: stripHtml(
           parsedContent.layout?.content?.content ||
-          parsedContent.sections?.content ||
-          "",
-        footer: parsedContent.layout?.footer?.content || "",
+            parsedContent.sections?.content ||
+            ""
+        ),
+        footer: stripHtml(parsedContent.layout?.footer?.content || ""),
       });
 
       // Set styles if available
@@ -88,7 +95,7 @@ const TemplateEditor = () => {
       // Fallback for old templates
       setSections({
         header: "",
-        content: template.content,
+        content: stripHtml(template.content),
         footer: "",
       });
       setImageUrl(template.imageUrl || "");
@@ -126,7 +133,11 @@ const TemplateEditor = () => {
   const handleDownload = () => {
     const htmlContent = generateEmailTemplate({
       title: template?.title || "Email Template",
-      sections,
+      sections: {
+        header: `<div style="text-align: ${styles.header.textAlign}">${sections.header}</div>`,
+        content: `<div style="text-align: ${styles.content.textAlign}">${sections.content}</div>`,
+        footer: `<div style="text-align: ${styles.footer.textAlign}">${sections.footer}</div>`,
+      },
       styles,
       imageUrl,
       imageStyles,
