@@ -1,4 +1,19 @@
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 },
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -7,44 +22,91 @@ const Home = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 z-0" />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 z-0"
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 relative z-10">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6 animate-fade-in">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-5xl font-bold text-gray-900 mb-6"
+            >
               Email Builder
-              <span className="text-blue-600"> Pro</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-blue-600"
+              >
+                {" "}
+                Pro
+              </motion.span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
+            >
               Create beautiful, responsive email templates with ease. Choose
               between technical and simple modes to match your expertise level.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <button
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="flex justify-center space-x-4"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/tools")}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg hover:shadow-xl"
               >
                 Get Started
-              </button>
-              <a
+              </motion.button>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href="#guide"
-                className="px-8 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-8 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-50 shadow-lg hover:shadow-xl"
               >
                 Learn More
-              </a>
-            </div>
-          </div>
+              </motion.a>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
       {/* Mode Selection */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <motion.div
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+      >
         <div className="grid md:grid-cols-2 gap-8">
           {/* Technical User Card */}
-          <div
-            className="group bg-white rounded-2xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+          <motion.div
+            variants={fadeInUp}
+            whileHover={{ scale: 1.02 }}
+            className="group bg-white rounded-2xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transition-all duration-300"
             onClick={() => navigate("/tools")}
           >
-            <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mb-6 flex items-center justify-center"
+            >
               <svg
                 className="h-7 w-7 text-white"
                 fill="none"
@@ -58,7 +120,7 @@ const Home = () => {
                   d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
                 />
               </svg>
-            </div>
+            </motion.div>
             <h2 className="text-2xl font-bold mb-4 text-gray-900">
               Technical User Mode
             </h2>
@@ -132,14 +194,19 @@ const Home = () => {
                 Save templates for others
               </li>
             </ul>
-          </div>
+          </motion.div>
 
           {/* Non-Technical User Card */}
-          <div
-            className="group bg-white rounded-2xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+          <motion.div
+            variants={fadeInUp}
+            whileHover={{ scale: 1.02 }}
+            className="group bg-white rounded-2xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transition-all duration-300"
             onClick={() => navigate("/non-tech")}
           >
-            <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="h-14 w-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl mb-6 flex items-center justify-center"
+            >
               <svg
                 className="h-7 w-7 text-white"
                 fill="none"
@@ -153,7 +220,7 @@ const Home = () => {
                   d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z"
                 />
               </svg>
-            </div>
+            </motion.div>
             <h2 className="text-2xl font-bold mb-4 text-gray-900">
               Simple Mode
             </h2>
@@ -227,14 +294,27 @@ const Home = () => {
                 Quick preview
               </li>
             </ul>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* User Guide Section */}
-      <div id="guide" className="bg-white py-16">
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        id="guide"
+        className="bg-white py-16"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               How to Use Email Builder Pro
             </h2>
@@ -242,8 +322,14 @@ const Home = () => {
               Follow these simple steps to create beautiful email templates in
               minutes
             </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          </motion.div>
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-3 gap-8"
+          >
             <div className="bg-gray-50 rounded-xl p-6 text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-blue-600 font-bold text-xl">1</span>
@@ -279,9 +365,9 @@ const Home = () => {
                 Export your template as HTML and use it in your email campaigns
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* About Section */}
       <div className="bg-gray-50 py-16">
