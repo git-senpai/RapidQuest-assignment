@@ -345,10 +345,10 @@ const TechnicalMode = () => {
         )}
 
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-          <div className="grid grid-cols-2 gap-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0">
             {/* Editor Side */}
-            <div className="p-8 border-r border-gray-200 overflow-y-auto max-h-[calc(100vh-12rem)]">
-              <div className="space-y-8">
+            <div className="p-4 lg:p-8 lg:border-r border-gray-200 overflow-y-auto max-h-[calc(100vh-12rem)]">
+              <div className="space-y-6 lg:space-y-8">
                 {/* Title Input */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -717,8 +717,8 @@ const TechnicalMode = () => {
             </div>
 
             {/* Live Preview Side */}
-            <div className="bg-gray-50 p-8">
-              <div className="sticky top-8">
+            <div className="bg-gray-50 p-4 lg:p-8 border-t lg:border-t-0">
+              <div className="lg:sticky lg:top-8">
                 <div className="flex items-center space-x-2 mb-6">
                   <svg
                     className="w-5 h-5 text-blue-500"
